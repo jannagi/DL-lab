@@ -3,15 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>이미지 생성기</title>
+    <title>AI Image Generater</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             font-family: Arial, sans-serif;
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -29,36 +26,52 @@
             margin-bottom: 20px;
         }
         #result {
-            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+        }
+        .image-container {
+            width: 45%;
+            margin-bottom: 20px;
             text-align: center;
         }
-        #result img {
+        .image-container img {
             max-width: 100%;
             height: auto;
+        }
+        .prompt-text {
+            margin-top: 10px;
+            font-size: 0.9em;
         }
     </style>
 </head>
 <body>
-    <h1>텍스트로 이미지 생성하기</h1>
-    <input type="text" id="prompt" placeholder="이미지 설명을 입력하세요">
-    <button onclick="generateImage()">이미지 생성</button>
+    <h1>AI Image Generater</h1>
+    <input type="text" id="prompt" placeholder="Please enter image description">
+    <button onclick="generateImages()">Generate Image</button>
     <div id="result"></div>
 
     <script>
-        function generateImage() {
+        function generateImages() {
             var prompt = $('#prompt').val();
-            $('#result').text('이미지를 생성 중입니다. 잠시만 기다려주세요...');
+            $('#result').html('<p>Creating an image, please wait...</p>');
             $.ajax({
                 url: '/generate',
                 method: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({prompt: prompt}),
                 success: function(response) {
-                    $('#result').html('<img src="' + response.image_url + '" alt="생성된 이미지">');
+                    $('#result').empty();
+                    response.images.forEach(function(item) {
+                        var imageContainer = $('<div class="image-container"></div>');
+                        imageContainer.append('<img src="' + item.image_url + '" alt="생성된 이미지">');
+                        imageContainer.append('<p class="prompt-text">프롬프트: ' + item.prompt + '</p>');
+                        $('#result').append(imageContainer);
+                    });
                 },
                 error: function(error) {
                     console.log(error);
-                    $('#result').text('이미지 생성 중 오류가 발생했습니다.');
+                    $('#result').text('An error occurred during image creation.');
                 }
             });
         }
